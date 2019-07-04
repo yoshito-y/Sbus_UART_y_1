@@ -24,10 +24,16 @@ class SBUS{
     }
     _SBUS(){
     }
-    void loop_do();
+    void loop_do(void (*move_func)());
     void print_send_data();
     void get_send_data(int s_d[]){
       s_d = send_data_;
+    }
+    void count_init(){
+      count_ = 0;
+    }
+    int get_count(){
+      return count_;
     }
 
 };
@@ -62,7 +68,7 @@ void SBUS::data_to_val_(){
   val_[18] = (data_[23] & 0x8) ? 0x7ff : 0 ; // Failsafe
 }
 
-void SBUS::loop_do() {
+void SBUS::loop_do(void (*move_func)()) {
   
   int i;
   read_sentence_();
@@ -171,9 +177,9 @@ void setup() {
 
 void loop() {
   int send_data[10];
-  sbus.loop_do();
-  sbus.get_send_data(send_data);
-  sbus.print_send_data();
+  sbus.loop_do(do_something);
+  // sbus.get_send_data(send_data);
+  
 
 //  check(send_data_);
   //  Serial.print(send_data_[1], DEC);
@@ -181,4 +187,8 @@ void loop() {
   //  Serial.println("");
 
   //mecanumCon(send_data_[1], send_data_[3]);
+}
+
+void do_something(){
+  sbus.print_send_data();
 }
