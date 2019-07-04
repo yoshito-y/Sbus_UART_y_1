@@ -5,6 +5,10 @@
 int button(int);
 int safe(int getData);
 
+typedef struct {
+  double x,y;
+}DIR;
+
 class SBUS{
   private:
     int data_[26];
@@ -26,6 +30,12 @@ class SBUS{
     }
     void loop_do(void (*move_func)());
     void print_send_data();
+    DIR get_dir(){
+      DIR d;
+      d.x = send_data_[1];
+      d.y = send_data_[3];
+      return d;
+    }
     void get_send_data(int s_d[]){
       s_d = send_data_;
     }
@@ -76,6 +86,7 @@ void SBUS::loop_do(void (*move_func)()) {
     count_ = 0;
     data_to_val_();
     data_encode_();
+    move_func();
 //    check(send_data_);
   }
 }
@@ -169,6 +180,8 @@ double mecanumCon(int lx, int ly) {
 }
 
 SBUS sbus;
+
+
 void setup() {
   Serial.begin(115200); // Terminal
   Serial1.begin(100000); // S-BUS
@@ -176,19 +189,15 @@ void setup() {
 }
 
 void loop() {
-  int send_data[10];
   sbus.loop_do(do_something);
-  // sbus.get_send_data(send_data);
   
-
-//  check(send_data_);
-  //  Serial.print(send_data_[1], DEC);
-  //  Serial.print(F(" "));
-  //  Serial.println("");
-
-  //mecanumCon(send_data_[1], send_data_[3]);
 }
 
 void do_something(){
+//  int send_data[10]; 
+  DIR dir;
   sbus.print_send_data();
+  dir = sbus.get_dir();
+  mecanumCon(dir.x,dir.y);
+  
 }
