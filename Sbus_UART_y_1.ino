@@ -6,7 +6,7 @@ int button(int);
 int safe(int getData);
 
 typedef struct {
-  double x,y;
+  double lx,ly,rx;
 }DIR;
 
 class SBUS{
@@ -32,8 +32,9 @@ class SBUS{
     void print_send_data();
     DIR get_dir(){
       DIR d;
-      d.x = send_data_[1];
-      d.y = send_data_[3];
+      d.lx = send_data_[1];
+      d.ly = send_data_[3];
+      d.rx = send_data_[0];
       return d;
     }
     void get_send_data(int s_d[]){
@@ -119,11 +120,11 @@ void SBUS::data_encode_() {
 
 void SBUS::print_send_data() {
   int i;
-  for (i = 0 ; i < 5; i++ ) {
-    Serial.print(send_data_[i], DEC);
-    Serial.print(F(" "));
-  }
-  Serial.println();
+//  for (i = 0 ; i < 5; i++ ) {
+//    Serial.print(send_data_[i], DEC);
+//    Serial.print(F(" "));
+//  }
+//  Serial.println();
 }
 
 int safe(int getData) {
@@ -155,28 +156,40 @@ int button(int num) {
   return back;
 }
 
-double mecanumCon(int lx, int ly) {
-  float y = (float)ly / 255;
-  float x = (float)lx / 255;
-  //Serial.println(y,5);
+void mecanumCon(float lx, float ly ,float rx) {
+  int AMP=127;
+   ly = (float)ly / 255.0;
+   lx = (float)lx / 255.0;
+   rx = (float)rx / 255.0;
 
-  double Direction = atan2(y, x) ;
-  double Distance = sqrt(pow(x, 2) + pow(y, 2));
+ char printbuff[128] = "";
 
-  double FR = (sin(Direction - PI / 4)) * 255;
-  double FL = (sin(Direction + PI / 4)) * 255;
-  double BR = (sin(Direction + PI / 4)) * 255;
-  double BL = (sin(Direction - PI / 4)) * 255;
-  /*
-    Serial.print("FR  ");
-    Serial.print(FR);
-    Serial.print("  FL : ");
-    Serial.print(FL);
-    Serial.print("  BR : ");
-    Serial.print(BR);
-    Serial.print("  BL : ");
-    Serial.println(BL);
-  */
+  float power = 0;
+  float rad = 0.0;
+  power = fabs(lx + ly);
+  rad = atan2(ly, lx);
+  if (ly <= 0) {
+    rad += 6.28;
+  }
+//    Serial.print("power = ");
+//    Serial.print(power);
+//    Serial.print("rad = ");
+//    Serial.println(rad);
+
+  float FR = (char)((sin(rad) - cos(rad)) * power * AMP + (rx) * AMP);
+  float BL = (char)((sin(rad) - cos(rad)) * power * AMP - (rx) * AMP);
+  float FL = (char)((sin(rad) + cos(rad)) * power * AMP - (rx) * AMP);
+  float BR = (char)((sin(rad) + cos(rad)) * power * AMP + (rx) * AMP);
+
+  Serial.print(FR);
+  Serial.print("  ");
+  Serial.print(FL);
+  Serial.print("  ");
+  Serial.print(BR);
+  Serial.print("  ");
+  Serial.print(BL);
+  Serial.println("  ");
+
 }
 
 SBUS sbus;
@@ -198,6 +211,6 @@ void do_something(){
   DIR dir;
   sbus.print_send_data();
   dir = sbus.get_dir();
-  mecanumCon(dir.x,dir.y);
+  mecanumCon(dir.lx,dir.ly,dir.rx);
   
 }
